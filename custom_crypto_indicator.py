@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import time  # For rate limiting
+import datetime  # For timestamped file naming
 
 # API Key Configuration
 API_KEY = "YOURAPIKEY"
@@ -68,18 +69,21 @@ def calculate_momentum_score(rsi, max_corr, max_lag):
     if last_rsi > 70:
         rsi_score = -5  # Overbought
     elif last_rsi < 30:
-        rsi_score = 5  # Oversold
+        rsi_score = 5   # Oversold
     else:
-        rsi_score = 0  # Neutral
+        rsi_score = 0   # Neutral
 
     # Correlation Weight
     corr_score = 0
     if max_corr > 0.7:  # High correlation
-        if max_lag > 0:  # RSI lags volume (momentum building)
+        if max_lag > 0:  
+            # RSI lags volume (momentum building)
             corr_score = 5
-        elif max_lag < 0:  # Volume lags RSI (momentum weakening)
+        elif max_lag < 0:  
+            # Volume lags RSI (momentum weakening)
             corr_score = -5
-    elif max_corr < 0.3:  # Weak correlation
+    elif max_corr < 0.3:  
+        # Weak correlation
         corr_score = 0
 
     # Final Score
@@ -140,7 +144,8 @@ def main():
 
             # Console Output for Each Crypto
             print(
-                f"{idx + 1:>2}. {name} ({symbol.upper()}) - RSI: {rsi[-1]:.2f}, Corr: {max_corr:.4f}, Lag: {max_lag}, Score: {momentum_score}, Rating: {rating}")
+                f"{idx + 1:>2}. {name} ({symbol.upper()}) - RSI: {rsi[-1]:.2f}, Corr: {max_corr:.4f}, Lag: {max_lag}, Score: {momentum_score}, Rating: {rating}"
+            )
 
             # Rate limiting (Pause after each request)
             time.sleep(DELAY)
@@ -152,11 +157,15 @@ def main():
     # Convert to DataFrame
     df = pd.DataFrame(results)
 
-    # Save results to CSV
-    df.to_json("crypto_custom_indicator.json", index=False)
+    # Create a timestamped filename
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"crypto_custom_indicator_{timestamp}.json"
+
+    # Save results to JSON
+    df.to_json(filename, index=False)
 
     # Final Output
-    print("\nAnalysis complete. Results saved to 'crypto_momentum_analysis.csv'.")
+    print(f"\nAnalysis complete. Results saved to '{filename}'.\n")
 
 
 if __name__ == "__main__":
